@@ -741,6 +741,8 @@
             }).catch((error) => {
                 log(`Initialization error: ${error.message}`, 'error');
             });
+        } else {
+            log("Browser not supported.");
         }
     </script>
 </body>
