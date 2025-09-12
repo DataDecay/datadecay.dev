@@ -428,6 +428,7 @@
     </div>
 
     <script type="module">
+        try {
         import { ticalc, tifiles } from './index.js';
 
         // Global variables
@@ -743,6 +744,9 @@
             });
         } else {
             log("Browser not supported.");
+        }
+        } catch(e){
+            log(e.message);
         }
     </script>
 </body>
