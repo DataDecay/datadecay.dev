@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TI Connect Alternative</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .browser-support {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
+
+        .browser-support.error {
+            background: rgba(254, 202, 202, 0.9);
+            color: #742a2a;
+            display: block;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e53e3e;
+            transition: background-color 0.3s ease;
+        }
+
+        .status-indicator.connected {
+            background: #38a169;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #e53e3e, #c53030);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #38a169, #2f855a);
+        }
+
+        .file-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f7fafc;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .file-item:hover {
+            background: #edf2f7;
+            transform: translateX(5px);
+            transition: all 0.2s ease;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .file-type {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .log-area {
+            background: #1a202c;
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            padding: 15px;
+            border-radius: 8px;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #38a169, #48bb78);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .calculator-info {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .calculator-info h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .info-value {
+            color: #718096;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .drag-drop-zone {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            background: #f7fafc;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+
+        .drag-drop-zone:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .drag-drop-zone.drag-over {
+            border-color: #38a169;
+            background: #f0fff4;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .memory-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .memory-item {
+            background: #f7fafc;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .memory-label {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .memory-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .support-level {
+            margin: 15px 0;
+        }
+
+        .support-level select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            background: white;
+        }
+
+        .keys-panel {
+            margin: 20px 0;
+        }
+
+        .key-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .key-btn {
+            padding: 10px;
+            font-size: 0.9rem;
+            min-height: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 TI Connect Alternative</h1>
+            <p>Modern web-based interface for TI calculator communication</p>
+        </div>
+
+        <div class="browser-support" id="browserSupport">
+            ⚠️ Your browser does not support WebUSB. Please use Chrome, Edge, or another Chromium-based browser.
+        </div>
+
+        <div class="main-content">
+            <!-- Connection Panel -->
+            <div class="card">
+                <h2>
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    Calculator Connection
+                </h2>
+                
+                <div class="support-level">
+                    <label for="supportLevel">Support Level:</label>
+                    <select id="supportLevel">
+                        <option value="supported">Supported only</option>
+                        <option value="partial-support">Include partial support</option>
+                        <option value="beta">Include beta support</option>
+                        <option value="experimental">Include experimental</option>
+                        <option value="none">All TI devices</option>
+                    </select>
+                </div>
+                
+                <button class="btn" id="connectBtn">Connect to Calculator</button>
+                <button class="btn btn-danger" id="disconnectBtn" disabled>Disconnect</button>
+                
+                <div class="calculator-info" id="calculatorInfo" style="display: none;">
+                    <h3>Calculator Information</h3>
+                    <div class="info-row">
+                        <span class="info-label">Model:</span>
+                        <span class="info-value" id="calcModel">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value" id="calcStatus">-</span>
+                    </div>
+                    
+                    <div class="memory-info" id="memoryInfo" style="display: none;">
+                        <div class="memory-item">
+                            <div class="memory-label">Free RAM</div>
+                            <div class="memory-value" id="freeRam">-</div>
+                        </div>
+                        <div class="memory-item">
+                            <div class="memory-label">Free Flash</div>
+                            <div class="memory-value" id="freeFlash">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Remote Keys Panel -->
+                <div class="keys-panel" id="keysPanel" style="display: none;">
+                    <h3>Remote Control</h3>
+                    <div class="key-grid">
+                        <button class="btn key-btn" onclick="sendKey(0x40)">ON</button>
+                        <button class="btn key-btn" onclick="sendKey(0x09)">CLEAR</button>
+                        <button class="btn key-btn" onclick="sendKey(0x05)">2nd</button>
+                        <button class="btn key-btn" onclick="sendKey(0x36)">MODE</button>
+                        <button class="btn key-btn" onclick="sendKey(0xA1)">H</button>
+                        <button class="btn key-btn" onclick="sendKey(0x9E)">E</button>
+                        <button class="btn key-btn" onclick="sendKey(0xA5)">L</button>
+                        <button class="btn key-btn" onclick="sendKey(0xA8)">O</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Management Panel -->
+            <div class="card">
+                <h2>📁 File Management</h2>
+                
+                <div class="file-list" id="fileList">
+                    <p style="text-align: center; color: #718096; padding: 20px;">
+                        Connect to calculator to view files
+                    </p>
+                </div>
+            </div>
+
+            <!-- File Transfer Panel -->
+            <div class="card full-width">
+                <h2>⬆️ File Transfer</h2>
+                
+                <div class="drag-drop-zone" id="dropZone">
+                    <p>📎 Drag and drop .8xp, .8xi, .8xg files here or click to select</p>
+                    <input type="file" id="fileInput" multiple accept=".8xp,.8xi,.8xg,.8xs,.8xd,.8xl,.8xm,.8xn,.8xc,.8xt,.8xu,.8xv,.8xy,.8xz,.8xa,.82p,.83p,.85p,.86p,.9xp,.9xi,.9xs,.9xd,.9xl,.9xm,.9xn,.9xc,.9xt,.9xu,.9xv,.9xy,.9xz,.9xa,.92p,.v2p" style="display: none;">
+                    <button class="btn" onclick="document.getElementById('fileInput').click()" id="selectFilesBtn" disabled>Select Files</button>
+                </div>
+                
+                <div id="selectedFilesList"></div>
+                
+                <div class="progress-bar" id="progressBarContainer" style="display: none;">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px;">
+                    <button class="btn btn-success" id="sendBtn" disabled>Send to Calculator</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Panel -->
+        <div class="card">
+            <h2>📋 Activity Log</h2>
+            <div class="log-area" id="logArea">
+                <div>TI Connect Alternative - Ready</div>
+                <div>Using ticalc-usb library for WebUSB communication</div>
+            </div>
+            <button class="btn" onclick="clearLog()">Clear Log</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { ticalc, tifiles } from 'index.js';
+
+        // Global variables
+        let currentCalculator = null;
+        let selectedFiles = [];
+        
+        // UI Elements
+        const statusIndicator = document.getElementById('statusIndicator');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const calculatorInfo = document.getElementById('calculatorInfo');
+        const memoryInfo = document.getElementById('memoryInfo');
+        const keysPanel = document.getElementById('keysPanel');
+        const fileList = document.getElementById('fileList');
+        const selectFilesBtn = document.getElementById('selectFilesBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const selectedFilesList = document.getElementById('selectedFilesList');
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const progressBar = document.getElementById('progressBar');
+        const logArea = document.getElementById('logArea');
+        const browserSupport = document.getElementById('browserSupport');
+        const supportLevel = document.getElementById('supportLevel');
+
+        // Check browser support
+        function checkBrowserSupport() {
+            const supported = ticalc.browserSupported();
+            if (!supported) {
+                browserSupport.classList.add('error');
+                connectBtn.disabled = true;
+                log('Browser does not support WebUSB', 'error');
+                return false;
+            }
+            log('Browser supports WebUSB', 'success');
+            return true;
+        }
+
+        // Logging function
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            
+            if (type === 'error') {
+                logEntry.style.color = '#fc8181';
+            } else if (type === 'success') {
+                logEntry.style.color = '#68d391';
+            } else if (type === 'warning') {
+                logEntry.style.color = '#f6e05e';
+            }
+            
+            logArea.appendChild(logEntry);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function clearLog() {
+            logArea.innerHTML = '<div>Log cleared</div>';
+        }
+
+        function updateProgress(percent) {
+            progressBar.style.width = percent + '%';
+            if (percent > 0) {
+                progressBarContainer.style.display = 'block';
+            }
+            if (percent >= 100) {
+                setTimeout(() => {
+                    progressBarContainer.style.display = 'none';
+                    progressBar.style.width = '0%';
+                }, 1000);
+            }
+        }
+
+        function updateUI(connected) {
+            statusIndicator.classList.toggle('connected', connected);
+            connectBtn.disabled = connected;
+            disconnectBtn.disabled = !connected;
+            selectFilesBtn.disabled = !connected;
+            sendBtn.disabled = !connected || selectedFiles.length === 0;
+            calculatorInfo.style.display = connected ? 'block' : 'none';
+            keysPanel.style.display = connected ? 'block' : 'none';
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Event handlers for calculator connection
+        ticalc.addEventListener('connect', async (calculator) => {
+            currentCalculator = calculator;
+            log(`Connected to ${calculator.name}`, 'success');
+            
+            document.getElementById('calcModel').textContent = calculator.name;
+            document.getElementById('calcStatus').textContent = calculator.supportLevel;
+            
+            updateUI(true);
+
+            try {
+                const isReady = await calculator.isReady();
+                if (isReady) {
+                    log('Calculator is ready for communication', 'success');
+                    
+                    // Get memory information
+                    const memory = await calculator.getFreeMem();
+                    document.getElementById('freeRam').textContent = formatBytes(memory.ram);
+                    document.getElementById('freeFlash').textContent = formatBytes(memory.flash);
+                    memoryInfo.style.display = 'grid';
+                } else {
+                    log('Calculator is not ready', 'warning');
+                }
+            } catch (error) {
+                log(`Error checking calculator status: ${error.message}`, 'error');
+            }
+        });
+
+        ticalc.addEventListener('disconnect', (calculator) => {
+            log(`Disconnected from ${calculator.name}`, 'warning');
+            currentCalculator = null;
+            updateUI(false);
+            memoryInfo.style.display = 'none';
+            fileList.innerHTML = '<p style="text-align: center; color: #718096; padding: 20px;">Connect to calculator to view files</p>';
+        });
+
+        // Connection handlers
+        connectBtn.addEventListener('click', async () => {
+            try {
+                log('Initializing ticalc-usb library...');
+                const level = supportLevel.value;
+                await ticalc.init({ supportLevel: level });
+                
+                log('Requesting calculator selection...');
+                await ticalc.choose({ supportLevel: level });
+                
+            } catch (error) {
+                if (error.message.includes('No device selected')) {
+                    log('No calculator selected', 'warning');
+                } else {
+                    log(`Connection failed: ${error.message}`, 'error');
+                }
+            }
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            if (currentCalculator) {
+                // The library handles disconnection automatically
+                // We just need to reset our state
+                currentCalculator = null;
+                updateUI(false);
+                log('Disconnected', 'warning');
+            }
+        });
+
+        // File handling
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(Array.from(e.target.files));
+        });
+
+        function handleFiles(files) {
+            selectedFiles = [];
+            const validFiles = [];
+            
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const parsedFile = tifiles.parseFile(data);
+                        
+                        if (tifiles.isValid(parsedFile)) {
+                            parsedFile.originalFile = file;
+                            selectedFiles.push(parsedFile);
+                            validFiles.push(file.name);
+                            log(`Parsed file: ${file.name}`, 'success');
+                        } else {
+                            log(`Invalid calculator file: ${file.name}`, 'error');
+                        }
+                        
+                        updateFileSelection();
+                    } catch (error) {
+                        log(`Error parsing file ${file.name}: ${error.message}`, 'error');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function updateFileSelection() {
+            selectedFilesList.innerHTML = '';
+            
+            if (selectedFiles.length > 0) {
+                const listDiv = document.createElement('div');
+                listDiv.innerHTML = `<h4>Selected Files (${selectedFiles.length}):</h4>`;
+                
+                selectedFiles.forEach((file, index) => {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'file-item';
+                    fileDiv.innerHTML = `
+                        <div class="file-info">
+                            <div class="file-name">${file.originalFile.name}</div>
+                            <div class="file-type">${file.header.varType} - ${formatBytes(file.originalFile.size)}</div>
+                        </div>
+                        <button class="btn btn-danger" onclick="removeFile(${index})">Remove</button>
+                    `;
+                    listDiv.appendChild(fileDiv);
+                });
+                
+                selectedFilesList.appendChild(listDiv);
+                sendBtn.disabled = !currentCalculator;
+            } else {
+                sendBtn.disabled = true;
+            }
+        }
+
+        window.removeFile = function(index) {
+            selectedFiles.splice(index, 1);
+            updateFileSelection();
+        };
+
+        sendBtn.addEventListener('click', async () => {
+            if (!currentCalculator || selectedFiles.length === 0) return;
+            
+            try {
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    
+                    log(`Checking if calculator can receive ${file.originalFile.name}...`);
+                    if (!currentCalculator.canReceive(file)) {
+                        log(`Calculator cannot receive ${file.originalFile.name}`, 'error');
+                        continue;
+                    }
+                    
+                    // Check storage
+                    const storageDetails = await currentCalculator.getStorageDetails(file);
+                    if (!storageDetails.fits) {
+                        log(`File ${file.originalFile.name} is too large for available storage`, 'error');
+                        continue;
+                    }
+                    
+                    log(`Sending ${file.originalFile.name}...`);
+                    updateProgress((i / selectedFiles.length) * 50);
+                    
+                    await currentCalculator.sendFile(file);
+                    updateProgress(((i + 1) / selectedFiles.length) * 100);
+                    
+                    log(`Successfully sent ${file.originalFile.name}`, 'success');
+                }
+                
+                log('All files sent successfully!', 'success');
+                
+                // Clear selection
+                selectedFiles = [];
+                fileInput.value = '';
+                updateFileSelection();
+                
+                // Update memory info
+                const memory = await currentCalculator.getFreeMem();
+                document.getElementById('freeRam').textContent = formatBytes(memory.ram);
+                document.getElementById('freeFlash').textContent = formatBytes(memory.flash);
+                
+            } catch (error) {
+                log(`File transfer failed: ${error.message}`, 'error');
+            }
+        });
+
+        // Remote key sending
+        window.sendKey = async function(keyCode) {
+            if (!currentCalculator) return;
+            
+            try {
+                await currentCalculator.pressKey(keyCode);
+                log(`Sent key: 0x${keyCode.toString(16).toUpperCase()}`, 'success');
+            } catch (error) {
+                log(`Error sending key: ${error.message}`, 'error');
+            }
+        };
+
+        // Drag and drop functionality
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        // Initialize
+        if (checkBrowserSupport()) {
+            updateUI(false);
+            
+            // Get available models
+            const models = ticalc.models();
+            log(`Available calculator models: ${models.map(m => m.name).join(', ')}`);
+            
+            // Initialize the library
+            ticalc.init({ supportLevel: 'supported' }).then(() => {
+                log('ticalc-usb library initialized', 'success');
+            }).catch((error) => {
+                log(`Initialization error: ${error.message}`, 'error');
+            });
+        }
+    </script>
+</body>
+</html>
