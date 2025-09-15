@@ -215,7 +215,7 @@
                             const fileList = await listResponse.json(); // Expecting an array of filenames
 
                             // Append all files with full directory paths
-                            filesToSend.push(...fileList.map(name => `./${app.directory}/${name}`));
+                            filesToSend.push(...fileList.map(name => `./apps/${app.directory}/${name}`));
                         } catch (e) {
                             alert('Error', `Failed to fetch file list for app '${appId}':\n${e.message}`);
                             return;
