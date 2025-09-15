@@ -18,6 +18,12 @@
                 <option value="">-- Select Preset --</option>
             </select>
             <button id="start" disabled>Send Files</button>
+            <div id="progressContainer" style="display:none; margin-top:1em;">
+                <label hidden for="progressBar">Sending progress:</label>
+                <progress id="progressBar" max="100" value="0" style="width: 100%;"></progress>
+                <div id="progressText" style="text-align:center;"></div>
+            </div>
+
         </div>
     </div>
 
@@ -224,7 +230,19 @@
                 }
 
                 // Sequentially fetch, parse, validate, check memory, and send each file
-                for (const url of filesToSend) {
+                const progressContainer = document.getElementById('progressContainer');
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressText');
+
+                progressContainer.style.display = 'block';  // Show progress UI
+                progressBar.value = 0;
+                progressText.textContent = '0%';
+
+                // Calculate total files count for progress
+                const totalFiles = filesToSend.length;
+
+                for (let i = 0; i < totalFiles; i++) {
+                    const url = filesToSend[i];
                     try {
                         const response = await fetch(url);
                         if (!response.ok) {
@@ -252,15 +270,22 @@
                         await calculator.sendFile(file);
                         console.log(`Sent: ${url}`);
 
+                        // Update progress
+                        const percent = Math.round(((i + 1) / totalFiles) * 100);
+                        progressBar.value = percent;
+                        progressText.textContent = `${percent}% (${i + 1} of ${totalFiles}) sent`;
+
                     } catch (error) {
                         alert('Send Error', `Failed to send file: ${url}\n${error.message}`);
                         return;
                     }
                 }
 
-                // Disable start button after sending all files
+                // Hide progress UI and disable button after all files sent
+                progressContainer.style.display = 'none';
                 document.querySelector('#start').disabled = true;
                 alert('Next Steps', preset.info);
+
             });
 
         }
