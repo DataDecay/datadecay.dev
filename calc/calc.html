@@ -273,7 +273,7 @@
                         // Update progress
                         const percent = Math.round(((i + 1) / totalFiles) * 100);
                         progressBar.value = percent;
-                        progressText.textContent = `${percent}% (${i + 1} of ${totalFiles}) sent`;
+                        progressText.textContent = `${percent}% (${i + 1} of ${totalFiles}) sent. (${url})`;
 
                     } catch (error) {
                         alert('Send Error', `Failed to send file: ${url}\n${error.message}`);
