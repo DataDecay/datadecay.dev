@@ -50,7 +50,16 @@ window.addEventListener('unhandledrejection', function(event) {
         name: "Just the jailbreak",
         files: [
           "./arTIfiCE_v2.8xp"
-        ]
+        ],
+        info: "Go to PRGMs and run *A"
+      },
+      {
+        name: "Jailbreak+Cesium",
+        files: [
+          "./arTIfiCE_v2.8xp",
+          "./cesium_english.zx0.8xp"
+        ],
+        info: "Go to PRGMs and run *A, then select Cesium."
       }
     ];
 
@@ -137,7 +146,7 @@ window.addEventListener('unhandledrejection', function(event) {
         const idx = e.target.value;
         if (idx !== "") {
           preset = presets[idx];
-          alert("Preset Selected", `You chose ${preset.name}.`);
+          //alert("Preset Selected", `You chose ${preset.name}.`);
         } else {
           preset = null;
         }
@@ -181,7 +190,7 @@ window.addEventListener('unhandledrejection', function(event) {
           }
         }
         document.querySelector('#start').disabled = true;
-        alert('Success', 'All preset files sent!');
+        alert('Next Steps', preset.info);
       });
     }
 
