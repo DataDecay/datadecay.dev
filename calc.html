@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TI Calculator File Sender</title>
+  <script src="https://cdn.jsdelivr.net/npm/ticalc-usb@latest/dist/index.js"></script>
+</head>
+<body>
+  <h1>TI Calculator USB File Sender</h1>
+
+  <div id="flow">
+    <p><b>Supported devices:</b> <span id="supported"></span></p>
+    <div class="buttons">
+      <button id="connect">Connect Calculator</button>
+      <select id="presetSelect">
+        <option value="">-- Select Preset --</option>
+      </select>
+      <button id="start">Send Files</button>
+    </div>
+  </div>
+
+  <div id="incompatible" style="display:none;">
+    <p>Your browser does not support WebUSB.</p>
+  </div>
+
+  <div id="popup" class="popup">
+    <h2></h2>
+    <p></p>
+    <div class="buttons"></div>
+  </div>
+
+  <script>
+    const { ticalc, tifiles } = window.ticalcUsb;
+    let calculator = null;
+    let preset = null;
+
+    // Hardcoded presets
+    const presets = [
+      {
+        name: "Preset 1",
+        files: [
+          "https://example.com/file1.8xp",
+          "https://example.org/filegroup.8xg"
+        ]
+      },
+      {
+        name: "Preset 2",
+        files: [
+          "https://example.org/fileprogram.8xp",
+          "https://example.com/filegroup1.8xg"
+        ]
+      }
+    ];
+
+    window.addEventListener('load', () => {
+      if (ticalc.browserSupported()) {
+        showSupportedDevices();
+        attachConnectionListeners();
+        updateButtons();
+        attachClickListeners();
+        populatePresets();
+
+        ticalc.init({ supportLevel: 'none' }).catch(e => handleUnsupported(e));
+        document.querySelector('#flow').style.display = 'block';
+        document.querySelector('#incompatible').style.display = 'none';
+      } else {
+        document.querySelector('#flow').style.display = 'none';
+        document.querySelector('#incompatible').style.display = 'block';
+      }
+    });
+
+    function showSupportedDevices() {
+      const calcNames = ticalc.models()
+        .filter(c => c.status == 'supported' || c.status == 'beta')
+        .map(c => c.status == 'beta' ? c.name + ' (beta)' : c.name)
+        .join(', ');
+      document.querySelector('#supported').innerText = calcNames;
+    }
+
+    function updateButtons() {
+      document.querySelector('#connect').disabled = false;
+      document.querySelector('#presetSelect').disabled = !calculator;
+      document.querySelector('#start').disabled = !(calculator && preset);
+    }
+
+    function attachConnectionListeners() {
+      ticalc.addEventListener('disconnect', calc => {
+        if (calc != calculator) return;
+        calculator = null;
+        updateButtons();
+      });
+      ticalc.addEventListener('connect', async calc => {
+        if (calc.status == 'experimental' || calc.status == 'beta') {
+          return confirm('Be careful!', `Your device (${calc.name}) only has ${calc.status} support. Continue?`)
+            .then(() => connect(calc))
+            .catch(() => {});
+        } else {
+          return connect(calc);
+        }
+      });
+    }
+
+    async function connect(calc) {
+      if (await calc.isReady()) {
+        calculator = calc;
+        updateButtons();
+      } else {
+        alert('Sorry!', 'The connected device is not responding.');
+      }
+    }
+
+    function attachClickListeners() {
+      document.querySelector('#connect')
+        .addEventListener('click', () => 
+          ticalc.choose().catch(e => handleUnsupported(e))
+        );
+      document.querySelector('#presetSelect')
+        .addEventListener('change', e => {
+          const idx = e.target.value;
+          if (idx !== "") {
+            preset = presets[idx];
+            alert("Selected", `You chose ${preset.name}.`);
+          } else {
+            preset = null;
+          }
+          updateButtons();
+        });
+      document.querySelector('#start')
+        .addEventListener('click', () => sendPresetFiles());
+    }
+
+    function populatePresets() {
+      const select = document.querySelector('#presetSelect');
+      presets.forEach((p, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = p.name;
+        select.appendChild(opt);
+      });
+    }
+
+    async function sendPresetFiles() {
+      if (!calculator || !preset) return;
+      for (let url of preset.files) {
+        try {
+          let response = await fetch(url);
+          let buffer = await response.arrayBuffer();
+          let file = tifiles.parseFile(new Uint8Array(buffer));
+
+          if (!tifiles.isValid(file)) {
+            alert("Error", `Invalid file: ${url}`);
+            return;
+          }
+          if (!calculator.canReceive(file)) {
+            alert('Careful!', `File not valid for ${calculator.name}: ${url}`);
+            return;
+          }
+          const details = await calculator.getStorageDetails(file);
+          if (!details.fits) {
+            alert('Sorry!', `Not enough memory for file: ${url}`);
+            return;
+          }
+
+          await calculator.sendFile(file);
+          console.log(`Sent: ${url}`);
+        } catch (e) {
+          console.error(e);
+          alert('Error', `Failed to send ${url}`);
+          return;
+        }
+      }
+      document.querySelector('#start').disabled = true;
+      alert('Success!', 'All files have been sent!');
+    }
+
+    function handleUnsupported(error) {
+      console.error(error);
+      alert('Unsupported', 'Your calculator may not be supported yet.');
+    }
+
+    function setPopup(title, body) {
+      const popup = document.getElementById('popup');
+      popup.querySelector('h2').innerText = title;
+      popup.querySelector('p').innerText = body;
+      popup.querySelector('.buttons').innerHTML = '';
+      return popup;
+    }
+
+    function popupButton(clss, text, fn) {
+      const button = document.createElement('button');
+      button.classList.add(clss);
+      button.innerText = text;
+      button.onclick = fn;
+      return button;
+    }
+
+    function alert(title, body) {
+      return new Promise(resolve => {
+        const popup = setPopup(title, body);
+        const button = popupButton('yes', 'Okay', () => {
+          popup.classList.remove('active');
+          resolve();
+        });
+        popup.querySelector('.buttons').appendChild(button);
+        popup.classList.add('active');
+      });
+    }
+
+    function confirm(title, body) {
+      return new Promise((resolve, reject) => {
+        const popup = setPopup(title, body);
+        const yesButton = popupButton('yes', 'Okay', () => {
+          popup.classList.remove('active');
+          resolve();
+        });
+        const noButton = popupButton('no', 'Cancel', () => {
+          popup.classList.remove('active');
+          reject();
+        });
+        popup.querySelector('.buttons').appendChild(yesButton);
+        popup.querySelector('.buttons').appendChild(noButton);
+        popup.classList.add('active');
+      });
+    }
+  </script>
+</body>
+</html>
