@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <title>TI-84+CE utils</title>
@@ -7,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/ticalc-usb@latest/dist/index.js"></script>
     <script type="module" src="main.js"></script>
 </head>
+
 <body>
     <h1>TI-84+CE utils</h1>
     <h2>Python model supported aswell!</h2>
@@ -16,7 +18,9 @@
             <button id="connect">Connect Calculator</button>
             <select id="presetSelect" disabled>
                 <option value="">-- Select Preset --</option>
+                <option value="CUSTOM">Custom</option>
             </select>
+            <div id="appCheckboxes" style="display:none; margin-top: 1em;"></div>
             <button id="start" disabled>Send Files</button>
             <div id="progressContainer" style="display:none; margin-top:1em;">
                 <label hidden for="progressBar">Sending progress:</label>
@@ -35,4 +39,5 @@
         <div class="buttons"></div>
     </div>
 </body>
+
 </html>

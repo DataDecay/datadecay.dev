@@ -6,7 +6,6 @@ body {
 .buttons {
     display: flex;
     flex-direction: column;
-    align-items: center;
 }
 button, select {
     margin: 0.5em;

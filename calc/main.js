@@ -1,7 +1,8 @@
 const { ticalc, tifiles } = window["ticalc-usb"];
-import { presets } from './presets.js';
+import { presets } from './presets.js'; // ensure your environment supports ES modules
 let calculator = null;
 let preset = null;
+
 
 // Error handlers
 window.onerror = function (message, source, lineno, colno, err) {
@@ -11,6 +12,10 @@ window.onerror = function (message, source, lineno, colno, err) {
 window.addEventListener('unhandledrejection', function (event) {
     alert(`Unhandled promise rejection: ${event.reason ? event.reason.stack || event.reason : 'Unknown error'}`);
 });
+
+// UI elements
+const appCheckboxesDiv = document.getElementById('appCheckboxes');
+const presetSelect = document.querySelector('#presetSelect');
 
 window.addEventListener('load', async () => {
     if (ticalc.browserSupported()) {
@@ -42,8 +47,8 @@ function showSupportedDevices() {
 
 function updateButtons() {
     document.querySelector('#connect').disabled = !!calculator;
-    document.querySelector('#presetSelect').disabled = !calculator;
-    document.querySelector('#start').disabled = !(calculator && preset);
+    presetSelect.disabled = !calculator;
+    document.querySelector('#start').disabled = !(calculator && preset && (preset !== 'CUSTOM' || hasCheckedApps()));
 }
 
 function attachConnectionListeners() {
@@ -88,30 +93,63 @@ function attachClickListeners() {
         }
     });
 
-    const presetSelect = document.querySelector('#presetSelect');
     presetSelect.addEventListener('change', e => {
         const idx = e.target.value;
-        preset = idx !== "" ? presets[idx] : null;
+        if (idx === 'CUSTOM') {
+            preset = 'CUSTOM';
+            renderAppCheckboxes();
+            appCheckboxesDiv.style.display = 'block';
+        } else {
+            preset = idx !== "" ? presets[idx] : null;
+            appCheckboxesDiv.style.display = 'none';
+            appCheckboxesDiv.innerHTML = '';
+        }
         updateButtons();
     });
 
     document.querySelector('#start').addEventListener('click', async () => {
         if (!calculator || !preset) return;
+
         let filesToSend = [];
-        if (preset.files) filesToSend.push(...preset.files);
-        if (preset.apps) {
-            for (const appId of preset.apps) {
+
+        if (preset === 'CUSTOM') {
+            // Gather checked apps
+            const selectedApps = Array.from(document.querySelectorAll('input[name="appCheckbox"]:checked')).map(cb => cb.value);
+            if (selectedApps.length === 0) {
+                await alertPopup('Custom preset', 'Please select at least one app.');
+                return;
+            }
+            for (const appId of selectedApps) {
                 try {
                     const listResponse = await fetch(`./apps/${appId}/files.json`);
                     if (!listResponse.ok) {
-                        alertPopup('Error', `Failed to load file list for app: ${appId}`);
+                        await alertPopup('Error', `Failed to load file list for app: ${appId}`);
                         return;
                     }
                     const fileList = await listResponse.json();
                     filesToSend.push(...fileList.map(name => `./apps/${appId}/${name}`));
                 } catch (e) {
-                    alertPopup('Error', `Failed to fetch file list for app '${appId}':\n${e.message}`);
+                    await alertPopup('Error', `Failed to fetch file list for app '${appId}':\n${e.message}`);
                     return;
+                }
+            }
+        } else {
+            // Normal preset files/apps
+            if (preset.files) filesToSend.push(...preset.files);
+            if (preset.apps) {
+                for (const appId of preset.apps) {
+                    try {
+                        const listResponse = await fetch(`./apps/${appId}/files.json`);
+                        if (!listResponse.ok) {
+                            await alertPopup('Error', `Failed to load file list for app: ${appId}`);
+                            return;
+                        }
+                        const fileList = await listResponse.json();
+                        filesToSend.push(...fileList.map(name => `./apps/${appId}/${name}`));
+                    } catch (e) {
+                        await alertPopup('Error', `Failed to fetch file list for app '${appId}':\n${e.message}`);
+                        return;
+                    }
                 }
             }
         }
@@ -122,28 +160,30 @@ function attachClickListeners() {
         progressContainer.style.display = 'block';
         progressBar.value = 0;
         progressText.textContent = '0%';
+
         const totalFiles = filesToSend.length;
+
         for (let i = 0; i < totalFiles; i++) {
             const url = filesToSend[i];
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
-                    alertPopup('Download Error', `Failed to download file: ${url}`);
+                    await alertPopup('Download Error', `Failed to download file: ${url}`);
                     return;
                 }
                 const buffer = await response.arrayBuffer();
                 const file = tifiles.parseFile(new Uint8Array(buffer));
                 if (!tifiles.isValid(file)) {
-                    alertPopup('Invalid File', `Invalid calculator file: ${url}`);
+                    await alertPopup('Invalid File', `Invalid calculator file: ${url}`);
                     return;
                 }
                 if (!calculator.canReceive(file)) {
-                    alertPopup('File Error', `File not valid for ${calculator.name}: ${url}`);
+                    await alertPopup('File Error', `File not valid for ${calculator.name}: ${url}`);
                     return;
                 }
                 const details = await calculator.getStorageDetails(file);
                 if (!details.fits) {
-                    alertPopup('Memory Error', `Not enough memory on calculator for file: ${url}`);
+                    await alertPopup('Memory Error', `Not enough memory on calculator for file: ${url}`);
                     return;
                 }
                 await calculator.sendFile(file);
@@ -151,24 +191,48 @@ function attachClickListeners() {
                 progressBar.value = percent;
                 progressText.textContent = `${percent}% (${i + 1} of ${totalFiles}) sent. (${url})`;
             } catch (error) {
-                alertPopup('Send Error', `Failed to send file: ${url}\n${error.message}`);
+                await alertPopup('Send Error', `Failed to send file: ${url}\n${error.message}`);
                 return;
             }
         }
+
         progressContainer.style.display = 'none';
         document.querySelector('#start').disabled = true;
-        alertPopup('Next Steps', preset.info);
+        await alertPopup('Next Steps', preset === 'CUSTOM' ? 'Custom apps sent.' : preset.info);
     });
 }
 
 function populatePresets() {
-    const select = document.querySelector('#presetSelect');
     presets.forEach((p, i) => {
         const option = document.createElement('option');
         option.value = i;
         option.textContent = p.name;
-        select.appendChild(option);
+        presetSelect.appendChild(option);
     });
+    // Append custom option
+    const customOption = document.createElement('option');
+    customOption.value = 'CUSTOM';
+    customOption.textContent = 'Custom';
+    presetSelect.appendChild(customOption);
+}
+
+function renderAppCheckboxes() {
+    appCheckboxesDiv.innerHTML = ''; // Clear prior
+    allApps.forEach(app => {
+        const label = document.createElement('label');
+        label.style.display = 'block';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = app.id;
+        checkbox.name = 'appCheckbox';
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(' ' + app.name));
+        appCheckboxesDiv.appendChild(label);
+    });
+}
+
+function hasCheckedApps() {
+    return document.querySelectorAll('input[name="appCheckbox"]:checked').length > 0;
 }
 
 function handleUnsupported(error) {
@@ -194,7 +258,7 @@ function popupButton(clss, text, fn) {
     return button;
 }
 
-async function alertPopup(title, body) {
+function alertPopup(title, body) {
     return new Promise(resolve => {
         const popup = setPopup(title, body);
         const button = popupButton('yes', 'Okay', () => {
@@ -205,7 +269,7 @@ async function alertPopup(title, body) {
     });
 }
 
-async function confirmPopup(title, body) {
+function confirmPopup(title, body) {
     return new Promise((resolve, reject) => {
         const popup = setPopup(title, body);
         const yesButton = popupButton('yes', 'Okay', () => {

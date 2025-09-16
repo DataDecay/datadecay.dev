@@ -25,3 +25,16 @@ export const presets = [
         info: "Open programs, open *A, then select Cesium. Now exit ArTIfiCE and open Cesium in the apps menu."
     }
 ];
+export const allApps = [
+  { id: "contaigon", name: "Contaigon" },
+  { id: "chess", name: "Chess" },
+  { id: "atomas", name: "Atomas" },
+  { id: "dino", name: "Dino" },
+  { id: "minesweeper", name: "Minesweeper" },
+  { id: "geometrydash", name: "Geometry Dash" },
+  { id: "doom", name: "Ripoff DOOM" },
+  { id: "factoring", name: "Factoring" },
+  { id: "calc2", name: "Calc2" },
+  { id: "geometry", name: "Geometry" }
+  // add all apps you have available
+];
