@@ -54,34 +54,29 @@
         const { ticalc, tifiles } = window["ticalc-usb"];
         let calculator = null;
         let preset = null;
-        /*const apps = [
-            {
-                id: "geometrydash",
-                directory: "geometrydash"
-
-            },
-            {
-                id: "contaigon",
-                directory: "contaigon"
-
-            }
-        ]*/
         const presets = [
             {
-                name: "Games",
+                name: "Games (No Geometry Dash)",
                 apps: [
-                    "geometrydash",
                     "contaigon",
                     "chess",
                     "atomas",
-                    "dino"
+                    "dino",
+                    "minesweeper"
+                ],
+                info: "Launch via Cesium! (in the INSTALL FIRST package)"
+            },
+            {
+                name: "Geometry Dash",
+                apps: [
+                    "geometrydash",
                 ],
                 info: "Launch via Cesium! (in the INSTALL FIRST package)"
             },
             {
                 name: "Math & Educational",
                 apps:[
-                "calculus",
+                //"calculus",
                 "factoring",
                 "calc2",
                 "geometry"
