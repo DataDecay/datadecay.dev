@@ -211,7 +211,6 @@
                 // Add files from apps directories if preset.apps is defined
                 if (preset.apps) {
                     for (const appId of preset.apps) {
-                        const app = apps.find(appId);
                         if (!app) {
                             alert('Error', `App not found or missing directory: ${appId}`);
                             return;
@@ -219,7 +218,7 @@
 
                         try {
                             // Fetch the JSON file listing all files inside app directory
-                            const listResponse = await fetch(`./apps/${app}/files.json`);
+                            const listResponse = await fetch(`./apps/${appId}/files.json`);
                             if (!listResponse.ok) {
                                 alert('Error', `Failed to load file list for app: ${appId}`);
                                 return;
@@ -227,7 +226,7 @@
                             const fileList = await listResponse.json(); // Expecting an array of filenames
 
                             // Append all files with full directory paths
-                            filesToSend.push(...fileList.map(name => `./apps/${app}/${name}`));
+                            filesToSend.push(...fileList.map(name => `./apps/${appId}/${name}`));
                         } catch (e) {
                             alert('Error', `Failed to fetch file list for app '${appId}':\n${e.message}`);
                             return;
