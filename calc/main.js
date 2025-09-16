@@ -1,5 +1,5 @@
 const { ticalc, tifiles } = window["ticalc-usb"];
-import { presets } from './presets.js'; // ensure your environment supports ES modules
+import { presets, allApps} from './presets.js'; // ensure your environment supports ES modules
 let calculator = null;
 let preset = null;
 
