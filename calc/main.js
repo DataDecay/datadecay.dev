@@ -107,10 +107,6 @@ function attachClickListeners() {
         updateButtons();
     });
 
-    document.querySelector("#appCheckbox").addEventListener('click', () => {
-        updateButtons();
-    })
-
     document.querySelector('#start').addEventListener('click', async () => {
         if (!calculator || !preset) return;
 
@@ -230,6 +226,9 @@ function renderAppCheckboxes() {
         checkbox.value = app.id;
         checkbox.name = 'appCheckbox';
         checkbox.class = 'appCheckbox'
+        checkbox.addEventListener('click', () => {
+            updateButtons();
+        })
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(' ' + app.name));
         appCheckboxesDiv.appendChild(label);
