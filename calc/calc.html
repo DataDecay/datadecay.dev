@@ -211,10 +211,6 @@
                 // Add files from apps directories if preset.apps is defined
                 if (preset.apps) {
                     for (const appId of preset.apps) {
-                        if (!app) {
-                            alert('Error', `App not found or missing directory: ${appId}`);
-                            return;
-                        }
 
                         try {
                             // Fetch the JSON file listing all files inside app directory
