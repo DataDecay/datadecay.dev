@@ -1,5 +1,5 @@
 const { ticalc, tifiles } = window["ticalc-usb"];
-import { presets, allApps} from './presets.js'; // ensure your environment supports ES modules
+import { presets, allApps } from './presets.js'; // ensure your environment supports ES modules
 let calculator = null;
 let preset = null;
 
@@ -106,6 +106,10 @@ function attachClickListeners() {
         }
         updateButtons();
     });
+
+    document.querySelector("#appCheckbox").addEventListener('click', () => {
+        updateButtons();
+    })
 
     document.querySelector('#start').addEventListener('click', async () => {
         if (!calculator || !preset) return;
@@ -225,6 +229,7 @@ function renderAppCheckboxes() {
         checkbox.type = 'checkbox';
         checkbox.value = app.id;
         checkbox.name = 'appCheckbox';
+        checkbox.class = 'appCheckbox'
         label.appendChild(checkbox);
         label.appendChild(document.createTextNode(' ' + app.name));
         appCheckboxesDiv.appendChild(label);
