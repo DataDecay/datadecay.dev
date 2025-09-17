@@ -1,12 +1,17 @@
 export const presets = [
     {
-        name: "Games (No Geometry Dash)",
+        name: "Games (No Geometry Dash, Minecraft, DOOM)",
         apps: ["contaigon", "chess", "atomas", "dino", "minesweeper"],
         info: "Launch via Cesium! (in the INSTALL FIRST package)"
     },
     {
         name: "Geometry Dash",
         apps: ["geometrydash"],
+        info: "Launch via Cesium! (in the INSTALL FIRST package)"
+    },
+    {
+        name: "Minecraft",
+        apps: ["minecraft"],
         info: "Launch via Cesium! (in the INSTALL FIRST package)"
     },
     {
@@ -21,7 +26,7 @@ export const presets = [
     },
     {
         name: "INSTALL FIRST",
-        apss: ["jailbreak", "cesium", "libs"],
+        apps: ["jailbreak", "cesium", "libs"],
         info: "Open programs, open *A, then select Cesium. Now exit ArTIfiCE and open Cesium in the apps menu."
     }
 ];
@@ -38,5 +43,6 @@ export const allApps = [
   { id: "doom", name: "Ripoff DOOM" },
   { id: "factoring", name: "Factoring" },
   { id: "calc2", name: "Calc2" },
-  { id: "geometry", name: "Geometry" }
+  { id: "geometry", name: "Geometry" },
+  { id: "minecraft", name: "Minecraft" }
 ];
