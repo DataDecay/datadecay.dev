@@ -21,11 +21,14 @@ export const presets = [
     },
     {
         name: "INSTALL FIRST",
-        files: ["./cesium.8xp", "./artifice.8xp", "./clibs.8xg"],
+        apss: ["jailbreak", "cesium", "libs"],
         info: "Open programs, open *A, then select Cesium. Now exit ArTIfiCE and open Cesium in the apps menu."
     }
 ];
 export const allApps = [
+  { id: "jailbreak", name: "ArTIfaCE" },
+  { id: "cesium", name: "Cesium" },
+  { id: "libs", name: "C Libs" },
   { id: "contaigon", name: "Contaigon" },
   { id: "chess", name: "Chess" },
   { id: "atomas", name: "Atomas" },
@@ -36,5 +39,4 @@ export const allApps = [
   { id: "factoring", name: "Factoring" },
   { id: "calc2", name: "Calc2" },
   { id: "geometry", name: "Geometry" }
-  // add all apps you have available
 ];
